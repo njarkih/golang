@@ -1,47 +1,30 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"os"
+
+	"SpamMasker/internal/service"
 )
 
-func HideLinks(inputString string) string {
-	hidedString := []byte(inputString) // создаю срез для строки со скрытой ссылкой
+func main() {
 
-	hideMark := byte('*')    // маскировочный символ
-	prefix := "http://"      // префикс строки, байты после нее и до первого пробела заменяю на *
-	prefixLen := len(prefix) // длина префикса 7
-
-	hideMode := false // режим false - обычный символ, иначе замаскированный
-
-	for i := 0; i < len(inputString); i++ { // перебираем исходную строку
-
-		// ищем префикс в строке и если нашли, то переводим в режим маскировки
-		if len(inputString)-i >= prefixLen &&
-			inputString[i:i+prefixLen] == prefix {
-
-			hideMode = true    // то переводим в режим маскировки
-			i += prefixLen - 1 // пропускаем сам префикс
-			continue
-		}
-
-		// снимаем режим маскировки если встречаем пробел
-		if hideMode && inputString[i] == ' ' {
-			hideMode = false
-		}
-
-		// в режиме маскировки меняем текущий символ на скрытый
-		if hideMode {
-			hidedString[i] = hideMark
-		}
+	inputPath := "input.txt" // дефолтное название входного ф-ла
+	if len(os.Args) > 1 {
+		inputPath = os.Args[1]
 	}
 
-	return string(hidedString)
-}
+	outputPath := "output.txt" // дефолтное для выходного
+	if len(os.Args) > 2 {
+		outputPath = os.Args[2]
+	}
 
-func main() {
-	inputString := "Here's my spammy page: http://hehefouls.netHAHAHA see you." // исходная строка
-	hidedString := HideLinks(inputString)
+	prod := service.NewFileProducer(inputPath)
+	pres := service.NewFilePresenter(outputPath)
+	service := service.NewService(prod, pres)
 
-	fmt.Printf("Исходная строка %s\n", inputString)
-	fmt.Printf("Замаскированная строка %s", string(hidedString))
+	err := service.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

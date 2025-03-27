@@ -1,3 +1,3 @@
-module nina_go
+module SpamMasker
 
 go 1.23.3
